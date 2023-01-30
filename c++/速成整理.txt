@@ -1,0 +1,69 @@
+/* C++是如何工作的 */
+
+#include是预处理 #之后的都是预处理 是由compiler在编译前处理的 compiler会把该文件里的代码拷贝过来
+main的写法：
+#include <iostream>
+
+int main()
+{
+    std::cout << "Hello World" << std::endl;
+}
+
+return type是int 但不一定要返回值 如果不return assume 0 这是一个特例
+<< 叫做Overload Operator 可以理解成函数 约等于std::count.print("Hello, World") 然后改行代码再次push了一个end line到stream中
+
+/* C++编译器是如何工作的 */
+
+生成obj文件的处理流程：预处理代码 -> 语义分析/解析 -> abstract syntax tree -> actual machine code
+在Java中文件名要符合函数名 文件夹directory要符合package 但是C++没有文件的概念
+对于预处理的代码 compiler拷贝其代码贴在当前的位置
+define预处理会像key value一样把前者替换成后者
+if预处理能够根据条件include或者不include一些代码: #if 1 #endif
+
+编译器会做的常见优化：
+Constant Folding 2 * 5这种两个常数的instruction会直接被优化成一个常数10
+Dead Code remove
+
+/* C++链接器是如何工作 */
+
+linker的工作是对于编译好的object文件 准确找到符号和函数的位置
+比如文件中没有main 这就会有linker error: no entry point
+Unresolved symbol就是linker无法找到符号或者函数的报错
+Compiler可以解决当前file中 如果出现多个函数或者符号重名的问题 但是如果放到不同的文件中 这就需要linker解决这个问题
+当一个translational unit (cpp file)里有一个log函数 然后另外两个file include该file时 就会出现linker error，因为两份log函数的拷贝存在两个file中linker不知道哪一个是对的。这个问题的解决可以是log函数改成static 这样即便include了每个文件也只是refer to本地的这个log 不会出现重复命名。或者抬头改成inline，这样函数被调用的地方，会变成实际执行的instructions，这样linker甚至不用去找函数位置。更普遍的解决方法是将definition of log函数移到一个translation unit，log.h中，而把具体的实现放到另外的一个文件里，log.cpp中，这个方法为什么能够没有linker error？
+
+/* C++变量 */
+
+primitive type：int（signed，4B，maybe different depend on compiler，如果需要unsigned要加在前面）
+char，short，long，long long 这些其实都和C是一样的
+
+/* C++头文件 */
+
+#pragma once 可以类比visited 在出现头文件chained的情况的时候 能够保证不重复拷贝某一个函数的定义造成报错 同样的效果也能够用ifndef检查来实现（ifndef检查某个符号是否有被定义 没有的话那接下来定义）
+
+/* C++指针 */
+
+固定是4B或者8B（64位系统）类型是无所谓的，&得到一个variable的memory address，*得到值，*ptr=可以更改存储在这个pointer上的值
+一个数组的declare是通过pointer实现的：
+char* buffer = new char[8];
+memset(buffer, 0); // 类比java arrays fill
+delete[] buffer; // 类比free
+
+/* C++引用 */
+我觉得可以和java的引用等同
+ref是不占用实际内存的 必须是一个已经存在的variable的reference
+int a = 5;
+int& b = a; // 这是一个引用
+void Increment(int *value) {
+    *(value)++;
+}
+Increment(&a);
+这是使用了指针 可以写成以下使用引用
+void Increment(int& value) {
+    value++;
+}
+Increment(a);
+
+注意这是语法糖 compile的时候是会变成指针版本的
+
+
